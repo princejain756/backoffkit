@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from .strategy import FixedDelay, Strategy
+from .strategy import ExponentialBackoff, FixedDelay, Strategy
 
 __version__ = "0.1.0"
 
 __all__ = [
+    "ExponentialBackoff",
     "FixedDelay",
     "Strategy",
     "__version__",
