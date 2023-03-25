@@ -10,9 +10,9 @@ All delays are expressed in seconds and never negative.
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import Optional, Protocol, runtime_checkable
 
-__all__ = ["Strategy", "FixedDelay"]
+__all__ = ["Strategy", "FixedDelay", "ExponentialBackoff"]
 
 
 @runtime_checkable
@@ -49,3 +49,24 @@ class FixedDelay:
 
     def __repr__(self) -> str:
         return f"FixedDelay(seconds={self.seconds!r})"
+
+
+class ExponentialBackoff:
+    """Multiply the delay by ``factor`` after every failed attempt.
+
+    The delay for attempt *n* is ``base * factor ** (n - 1)``, optionally
+    capped at ``max_delay``.  ``base=0`` produces an immediate first retry,
+    which is useful together with jitter.
+    """
+
+    __slots__ = ("base", "factor", "max_delay")
+
+    def __init__(
+        self,
+        base: float = 0.5,
+        factor: float = 2.0,
+        max_delay: Optional[float] = None,
+    ) -> None:
+        if base < 0:
+            raise ValueError(f"base must be >= 0, got {base!r}")
+        if factor < 1:
