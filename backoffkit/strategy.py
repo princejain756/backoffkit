@@ -70,3 +70,22 @@ class ExponentialBackoff:
         if base < 0:
             raise ValueError(f"base must be >= 0, got {base!r}")
         if factor < 1:
+            raise ValueError(f"factor must be >= 1, got {factor!r}")
+        if max_delay is not None and max_delay < 0:
+            raise ValueError(f"max_delay must be >= 0, got {max_delay!r}")
+        self.base = float(base)
+        self.factor = float(factor)
+        self.max_delay = None if max_delay is None else float(max_delay)
+
+    def delay(self, attempt: int) -> float:
+        _check_attempt(attempt)
+        value = self.base * self.factor ** (attempt - 1)
+        if self.max_delay is not None:
+            value = min(value, self.max_delay)
+        return value
+
+    def __repr__(self) -> str:
+        return (
+            f"ExponentialBackoff(base={self.base!r}, factor={self.factor!r}, "
+            f"max_delay={self.max_delay!r})"
+        )
