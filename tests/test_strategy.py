@@ -32,3 +32,10 @@ def test_exponential_rejects_factor_below_one() -> None:
 
 @pytest.mark.parametrize("strategy", [FixedDelay(1.0), ExponentialBackoff()])
 def test_attempts_below_one_are_rejected(strategy: Strategy) -> None:
+    with pytest.raises(ValueError, match="attempt must be >= 1"):
+        strategy.delay(0)
+
+
+def test_strategy_protocol_is_runtime_checkable() -> None:
+    assert isinstance(FixedDelay(0.1), Strategy)
+    assert not isinstance(object(), Strategy)
