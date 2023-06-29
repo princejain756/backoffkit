@@ -10,9 +10,16 @@ All delays are expressed in seconds and never negative.
 
 from __future__ import annotations
 
+import random
 from typing import Optional, Protocol, runtime_checkable
 
-__all__ = ["Strategy", "FixedDelay", "ExponentialBackoff"]
+__all__ = [
+    "Strategy",
+    "FixedDelay",
+    "ExponentialBackoff",
+    "Jittered",
+    "EqualJitter",
+]
 
 
 @runtime_checkable
@@ -89,3 +96,11 @@ class ExponentialBackoff:
             f"ExponentialBackoff(base={self.base!r}, factor={self.factor!r}, "
             f"max_delay={self.max_delay!r})"
         )
+
+
+class Jittered:
+    """Full jitter: pick a delay uniformly from ``[0, ceiling]``.
+
+    Retrying on a fixed schedule makes clients that failed together retry
+    together.  Sampling the whole interval spreads them out again.
+    """
