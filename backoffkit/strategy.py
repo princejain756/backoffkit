@@ -104,3 +104,19 @@ class Jittered:
     Retrying on a fixed schedule makes clients that failed together retry
     together.  Sampling the whole interval spreads them out again.
     """
+
+    __slots__ = ("strategy", "_random")
+
+    def __init__(
+        self,
+        strategy: Strategy,
+        rng: Optional[random.Random] = None,
+    ) -> None:
+        self.strategy = strategy
+        self._random = rng if rng is not None else random.Random()
+
+    def delay(self, attempt: int) -> float:
+        ceiling = self.strategy.delay(attempt)
+        if ceiling <= 0:
+            return 0.0
+        return self._random.uniform(0.0, ceiling)
