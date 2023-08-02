@@ -120,3 +120,19 @@ class Jittered:
         if ceiling <= 0:
             return 0.0
         return self._random.uniform(0.0, ceiling)
+
+    def __repr__(self) -> str:
+        return f"Jittered(strategy={self.strategy!r})"
+
+
+class EqualJitter:
+    """Equal jitter: keep half the delay and randomise over the other half.
+
+    The result stays in ``[ceiling / 2, ceiling]``, so retries still back off
+    while avoiding a thundering herd.
+    """
+
+    __slots__ = ("strategy", "_random")
+
+    def __init__(
+        self,
