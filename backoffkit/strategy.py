@@ -136,3 +136,18 @@ class EqualJitter:
 
     def __init__(
         self,
+        strategy: Strategy,
+        rng: Optional[random.Random] = None,
+    ) -> None:
+        self.strategy = strategy
+        self._random = rng if rng is not None else random.Random()
+
+    def delay(self, attempt: int) -> float:
+        ceiling = self.strategy.delay(attempt)
+        if ceiling <= 0:
+            return 0.0
+        half = ceiling / 2.0
+        return half + self._random.uniform(0.0, half)
+
+    def __repr__(self) -> str:
+        return f"EqualJitter(strategy={self.strategy!r})"
