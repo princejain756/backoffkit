@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from backoffkit.strategy import ExponentialBackoff, FixedDelay, Strategy
+from backoffkit import EqualJitter, ExponentialBackoff, FixedDelay, Jittered, Strategy
 
 
 def test_fixed_delay_is_constant() -> None:
@@ -39,3 +39,15 @@ def test_attempts_below_one_are_rejected(strategy: Strategy) -> None:
 def test_strategy_protocol_is_runtime_checkable() -> None:
     assert isinstance(FixedDelay(0.1), Strategy)
     assert not isinstance(object(), Strategy)
+
+
+def test_jitter_stays_within_the_ceiling() -> None:
+    inner = ExponentialBackoff(base=4.0, factor=2.0)
+    jittered = Jittered(inner)
+    for attempt in range(1, 6):
+        ceiling = inner.delay(attempt)
+        for _ in range(20):
+            assert 0.0 <= jittered.delay(attempt) <= ceiling
+
+
+def test_equal_jitter_keeps_at_least_half_the_delay() -> None:
