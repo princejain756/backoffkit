@@ -51,3 +51,14 @@ def test_jitter_stays_within_the_ceiling() -> None:
 
 
 def test_equal_jitter_keeps_at_least_half_the_delay() -> None:
+    inner = ExponentialBackoff(base=4.0, factor=2.0)
+    jittered = EqualJitter(inner)
+    for attempt in range(1, 6):
+        ceiling = inner.delay(attempt)
+        for _ in range(20):
+            assert ceiling / 2 <= jittered.delay(attempt) <= ceiling
+
+
+def test_jitter_is_never_negative_for_immediate_first_retry() -> None:
+    jittered = EqualJitter(ExponentialBackoff(base=0.0))
+    assert jittered.delay(1) == 0.0
