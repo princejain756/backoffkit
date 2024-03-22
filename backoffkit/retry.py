@@ -80,3 +80,17 @@ class RetryPolicy:
 
 def retry(
     *,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    strategy: Optional[Strategy] = None,
+    retry_on: ErrorTypes = Exception,
+    giveup: Optional[Callable[[BaseException], bool]] = None,
+    sleep: Callable[[float], None] = time.sleep,
+) -> Callable[[F], F]:
+    """Retry the decorated callable, sleeping according to ``strategy``.
+
+    Exceptions that do not match ``retry_on`` propagate untouched.  When the
+    allow-list is exhausted, :class:`RetryError` is raised with the last error
+    attached as ``__cause__``.
+
+    ``sleep`` is injectable so tests can run without waiting.
+    """
