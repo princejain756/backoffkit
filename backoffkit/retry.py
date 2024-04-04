@@ -94,3 +94,18 @@ def retry(
 
     ``sleep`` is injectable so tests can run without waiting.
     """
+    policy = RetryPolicy(
+        max_attempts=max_attempts,
+        strategy=strategy,
+        retry_on=retry_on,
+        giveup=giveup,
+    )
+
+    def decorator(func: F) -> F:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
+            attempt = 1
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except BaseException as error:
