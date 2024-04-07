@@ -109,3 +109,17 @@ def retry(
                 try:
                     return func(*args, **kwargs)
                 except BaseException as error:
+                    if not policy.accepts(error):
+                        raise
+                    if attempt >= policy.max_attempts:
+                        raise RetryError(
+                            f"{func.__name__} failed after {attempt} attempts",
+                            attempts=attempt,
+                            last_error=error,
+                        ) from error
+                    sleep(policy.delay(attempt))
+                    attempt += 1
+
+        return cast(F, wrapper)
+
+    return decorator
