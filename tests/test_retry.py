@@ -4,7 +4,7 @@ from typing import List
 
 import pytest
 
-from backoffkit import FixedDelay, RetryError, retry
+from backoffkit import FixedDelay, RetryError, RetryPolicy, retry
 
 
 class Flaky:
@@ -63,3 +63,16 @@ def test_metadata_is_preserved() -> None:
 def test_max_attempts_below_one_is_rejected() -> None:
     with pytest.raises(ValueError, match="max_attempts must be >= 1"):
         retry(max_attempts=0)
+
+
+def test_unlisted_exception_propagates_untouched() -> None:
+    sleeps: List[float] = []
+
+    @retry(
+        max_attempts=4,
+        strategy=FixedDelay(1.0),
+        retry_on=ConnectionError,
+        sleep=sleeps.append,
+    )
+    def call() -> None:
+        raise ValueError("not retryable")
