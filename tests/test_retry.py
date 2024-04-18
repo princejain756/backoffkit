@@ -76,3 +76,18 @@ def test_unlisted_exception_propagates_untouched() -> None:
     )
     def call() -> None:
         raise ValueError("not retryable")
+
+    with pytest.raises(ValueError):
+        call()
+    assert sleeps == []
+
+
+def test_giveup_stops_retrying_early() -> None:
+    flaky = Flaky(failures=10)
+
+    @retry(
+        max_attempts=5,
+        strategy=FixedDelay(0.0),
+        giveup=lambda error: "boom 2" in str(error),
+        sleep=lambda _: None,
+    )
