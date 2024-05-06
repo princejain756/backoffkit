@@ -91,3 +91,16 @@ def test_giveup_stops_retrying_early() -> None:
         giveup=lambda error: "boom 2" in str(error),
         sleep=lambda _: None,
     )
+    def call() -> str:
+        return flaky()
+
+    with pytest.raises(ConnectionError, match="boom 2"):
+        call()
+    assert flaky.calls == 2
+
+
+def test_policy_describes_itself() -> None:
+    policy = RetryPolicy(max_attempts=2, strategy=FixedDelay(0.5), retry_on=OSError)
+    assert "RetryPolicy(max_attempts=2" in repr(policy)
+    assert policy.accepts(OSError()) is True
+    assert policy.accepts(ValueError()) is False
