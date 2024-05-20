@@ -1,10 +1,20 @@
-"""The synchronous retry decorator and its policy."""
+"""The synchronous retry decorator and the policy shared with the async one."""
 
 from __future__ import annotations
 
 import functools
 import time
-from typing import Any, Callable, Optional, Tuple, Type, TypeVar, Union, cast
+from dataclasses import dataclass
+from typing import (
+    Any,
+    Callable,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from .strategy import ExponentialBackoff, Strategy
 
@@ -13,7 +23,9 @@ __all__ = [
     "ErrorTypes",
     "RetryError",
     "RetryPolicy",
+    "RetryState",
     "retry",
+    "retry_call",
 ]
 
 F = TypeVar("F", bound=Callable[..., Any])
@@ -34,6 +46,15 @@ class RetryError(Exception):
 
     def __str__(self) -> str:
         return f"{super().__str__()} (last error: {self.last_error!r})"
+
+
+@dataclass(frozen=True)
+class RetryState:
+    """Snapshot handed to an ``on_retry`` callback after each failed attempt."""
+
+    attempt: int
+    delay: float
+    error: BaseException
 
 
 class RetryPolicy:
@@ -84,6 +105,7 @@ def retry(
     strategy: Optional[Strategy] = None,
     retry_on: ErrorTypes = Exception,
     giveup: Optional[Callable[[BaseException], bool]] = None,
+    on_retry: Optional[Callable[[RetryState], None]] = None,
     sleep: Callable[[float], None] = time.sleep,
 ) -> Callable[[F], F]:
     """Retry the decorated callable, sleeping according to ``strategy``.
@@ -117,9 +139,5 @@ def retry(
                             attempts=attempt,
                             last_error=error,
                         ) from error
-                    sleep(policy.delay(attempt))
-                    attempt += 1
-
-        return cast(F, wrapper)
-
-    return decorator
+                    delay = policy.delay(attempt)
+                    if on_retry is not None:
