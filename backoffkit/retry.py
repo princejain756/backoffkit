@@ -141,3 +141,21 @@ def retry(
                         ) from error
                     delay = policy.delay(attempt)
                     if on_retry is not None:
+                        on_retry(RetryState(attempt=attempt, delay=delay, error=error))
+                    sleep(delay)
+                    attempt += 1
+
+        return cast(F, wrapper)
+
+    return decorator
+
+
+def retry_call(
+    func: Callable[..., Any],
+    *args: Any,
+    max_attempts: int = DEFAULT_MAX_ATTEMPTS,
+    strategy: Optional[Strategy] = None,
+    retry_on: ErrorTypes = Exception,
+    giveup: Optional[Callable[[BaseException], bool]] = None,
+    on_retry: Optional[Callable[[RetryState], None]] = None,
+    sleep: Callable[[float], None] = time.sleep,
