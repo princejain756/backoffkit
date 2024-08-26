@@ -159,3 +159,20 @@ def retry_call(
     giveup: Optional[Callable[[BaseException], bool]] = None,
     on_retry: Optional[Callable[[RetryState], None]] = None,
     sleep: Callable[[float], None] = time.sleep,
+    **kwargs: Any,
+) -> Any:
+    """Call ``func`` once with retries, without decorating it.
+
+    Useful for callables you cannot decorate, such as bound methods on a
+    third-party object or partials built at runtime.  Any keyword argument
+    that is not a retry option is forwarded to ``func``.
+    """
+    wrapped = retry(
+        max_attempts=max_attempts,
+        strategy=strategy,
+        retry_on=retry_on,
+        giveup=giveup,
+        on_retry=on_retry,
+        sleep=sleep,
+    )(func)
+    return wrapped(*args, **kwargs)
