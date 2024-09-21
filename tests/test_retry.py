@@ -4,7 +4,7 @@ from typing import List
 
 import pytest
 
-from backoffkit import FixedDelay, RetryError, RetryPolicy, retry
+from backoffkit import FixedDelay, RetryError, RetryState, retry, retry_call
 
 
 class Flaky:
@@ -99,8 +99,24 @@ def test_giveup_stops_retrying_early() -> None:
     assert flaky.calls == 2
 
 
-def test_policy_describes_itself() -> None:
-    policy = RetryPolicy(max_attempts=2, strategy=FixedDelay(0.5), retry_on=OSError)
-    assert "RetryPolicy(max_attempts=2" in repr(policy)
-    assert policy.accepts(OSError()) is True
-    assert policy.accepts(ValueError()) is False
+def test_on_retry_reports_each_failure() -> None:
+    events: List[RetryState] = []
+    flaky = Flaky(failures=1)
+
+    @retry(
+        max_attempts=2,
+        strategy=FixedDelay(0.5),
+        on_retry=events.append,
+        sleep=lambda _: None,
+    )
+    def call() -> str:
+        return flaky()
+
+    assert call() == "ok"
+    assert len(events) == 1
+    assert events[0].attempt == 1
+    assert events[0].delay == 0.5
+    assert isinstance(events[0].error, ConnectionError)
+
+
+def test_retry_call_wraps_an_existing_callable() -> None:
