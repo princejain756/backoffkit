@@ -120,3 +120,19 @@ def test_on_retry_reports_each_failure() -> None:
 
 
 def test_retry_call_wraps_an_existing_callable() -> None:
+    flaky = Flaky(failures=1)
+    result = retry_call(
+        flaky,
+        max_attempts=2,
+        strategy=FixedDelay(0.0),
+        sleep=lambda _: None,
+    )
+    assert result == "ok"
+    assert flaky.calls == 2
+
+
+def test_retry_call_forwards_arguments() -> None:
+    def add(left: int, right: int, *, scale: int = 1) -> int:
+        return (left + right) * scale
+
+    assert retry_call(add, 2, 3, scale=2, sleep=lambda _: None) == 10
