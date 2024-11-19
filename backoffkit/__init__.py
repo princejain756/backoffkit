@@ -11,6 +11,7 @@ Quick start::
 
 from __future__ import annotations
 
+from .async_retry import async_retry, async_retry_call
 from .retry import RetryError, RetryPolicy, RetryState, retry, retry_call
 from .strategy import (
     EqualJitter,
@@ -20,7 +21,7 @@ from .strategy import (
     Strategy,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "EqualJitter",
@@ -32,6 +33,8 @@ __all__ = [
     "RetryState",
     "Strategy",
     "__version__",
+    "async_retry",
+    "async_retry_call",
     "retry",
     "retry_call",
 ]
