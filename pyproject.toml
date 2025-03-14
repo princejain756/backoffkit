@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "backoffkit"
+version = "0.3.0"
+description = "Small, dependency-free retry and backoff helpers for synchronous and asyncio code"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Marta Voss", email = "marta@example.com" }]
+keywords = ["retry", "backoff", "exponential", "jitter", "asyncio"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-asyncio>=0.21",
+    "mypy>=1.8",
+]
+
+[project.urls]
+Homepage = "https://example.com/backoffkit"
+Issues = "https://example.com/backoffkit/issues"
+
+[tool.setuptools]
+packages = ["backoffkit"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+
+[tool.mypy]
+strict = true
+files = ["backoffkit", "tests"]
