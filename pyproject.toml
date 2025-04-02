@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Typing :: Typed",
 ]
 
 [project.optional-dependencies]
@@ -37,10 +38,19 @@ Issues = "https://example.com/backoffkit/issues"
 [tool.setuptools]
 packages = ["backoffkit"]
 
+[tool.setuptools.package-data]
+backoffkit = ["py.typed"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "strict"
+filterwarnings = ["error"]
 
 [tool.mypy]
 strict = true
 files = ["backoffkit", "tests"]
+warn_unreachable = true
+
+[tool.coverage.run]
+branch = true
+source = ["backoffkit"]
