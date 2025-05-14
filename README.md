@@ -99,3 +99,19 @@ result = retry_call(parse_line, line, max_attempts=3)
 ```
 
 `retry_call` accepts the same options as `retry`; any other keyword argument is
+forwarded to the wrapped callable.
+
+## asyncio
+
+```python
+from backoffkit import async_retry, ExponentialBackoff
+
+@async_retry(max_attempts=3, strategy=ExponentialBackoff(base=0.1))
+async def ping() -> str:
+    return await client.get("/health")
+```
+
+`async_retry` awaits `asyncio.sleep` between attempts and never retries
+`asyncio.CancelledError`, so cancelling the surrounding task takes effect on the
+first attempt. It requires a coroutine function and raises `TypeError`
+otherwise. `async_retry_call` is the non-decorator form.
