@@ -115,3 +115,19 @@ async def ping() -> str:
 `asyncio.CancelledError`, so cancelling the surrounding task takes effect on the
 first attempt. It requires a coroutine function and raises `TypeError`
 otherwise. `async_retry_call` is the non-decorator form.
+
+## Testing
+
+Both decorators accept a `sleep` argument, so tests do not have to wait:
+
+```python
+delays: list[float] = []
+
+@retry(max_attempts=3, strategy=ExponentialBackoff(), sleep=delays.append)
+def flaky() -> str:
+    ...
+
+assert delays == [0.5, 1.0]
+```
+
+For async code pass an `async def` sleeper. Run the suite with:
