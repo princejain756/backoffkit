@@ -131,3 +131,18 @@ assert delays == [0.5, 1.0]
 ```
 
 For async code pass an `async def` sleeper. Run the suite with:
+
+```console
+$ python -m pytest
+```
+
+## Limits
+
+- Retries are in-process only; nothing is shared between workers.
+- Delays are not persisted, so a restart starts from the first attempt again.
+- Only attempts are bounded, not total elapsed time — wrap slow calls with your
+  own deadline if you need one.
+
+## License
+
+MIT
