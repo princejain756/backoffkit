@@ -1,7 +1,7 @@
 # Usage
 
-This page walks through the two things `backoffkit` does: computing delays and
-wrapping a function with retries.
+This page walks through the three things `backoffkit` does: computing delays,
+wrapping a function with retries, and doing the same for coroutines.
 
 ## Picking a strategy
 
@@ -17,8 +17,8 @@ never sleep and never touch the clock, which makes them trivial to test.
 
 ### FixedDelay
 
-Use it when the failure is likely transient and short, such as lock contention
-or a file rename on a networked volume.
+Use it when the failure is likely transient and short, such as a lock
+contention or a file rename on a networked volume.
 
 ```python
 from backoffkit import FixedDelay
@@ -57,7 +57,9 @@ half = EqualJitter(ExponentialBackoff(base=0.5, max_delay=30.0))
 ```
 
 `Jittered` samples uniformly from `[0, ceiling]`; `EqualJitter` keeps the lower
-half fixed and samples the upper half, so retries still space out.
+half fixed and samples the upper half, so retries still space out. Both accept
+an optional `random.Random` instance, which is what the test suite uses to make
+the sampled values reproducible.
 
 ## Retrying a function
 
@@ -88,17 +90,29 @@ What happens on each call:
 `RetryError` exposes `attempts` and `last_error`, and the original exception is
 available through `__cause__` for logging.
 
-## Testing code that retries
+### Exception allow-lists
 
-Inject a sleeper instead of patching `time.sleep`:
+Pass a class or a tuple of classes to `retry_on`. Broad values like `Exception`
+are convenient at the top of a new project but hide bugs, because a `TypeError`
+from your own code will be retried three times before it is reported.
 
 ```python
-delays: list[float] = []
-
-@retry(max_attempts=3, strategy=ExponentialBackoff(base=0.5), sleep=delays.append)
-def flaky() -> str:
-    """Fails twice, then succeeds."""
-
-assert flaky() == "done"
-assert delays == [0.5, 1.0]
+@retry(max_attempts=3, retry_on=ConnectionError)
+def connect(host: str) -> None: ...
 ```
+
+`giveup` runs before the allow-list and can veto a specific error:
+
+```python
+@retry(max_attempts=5, retry_on=OSError, giveup=lambda error: error.errno == 2)
+def read_config(path: str) -> str: ...
+```
+
+## Retrying a coroutine
+
+```python
+from backoffkit import async_retry, ExponentialBackoff
+
+@async_retry(max_attempts=3, strategy=ExponentialBackoff(base=0.1, max_delay=2.0))
+async def health() -> str:
+    response = await client.get("/health")
