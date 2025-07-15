@@ -116,3 +116,17 @@ from backoffkit import async_retry, ExponentialBackoff
 @async_retry(max_attempts=3, strategy=ExponentialBackoff(base=0.1, max_delay=2.0))
 async def health() -> str:
     response = await client.get("/health")
+    return response.text
+```
+
+The async variant uses the same `RetryPolicy` as the sync one, so the
+allow-list, `giveup`, and `on_retry` semantics are identical. Two details are
+specific to asyncio:
+
+- `asyncio.CancelledError` inherits from `BaseException`, so the default
+  `retry_on=Exception` leaves it alone. Cancelling the enclosing task stops the
+  loop on the attempt that is in flight.
+- The decorated object must be a coroutine function; anything else raises
+  `TypeError` when the decorator is applied, not when it is first called.
+
+`async_retry_call` is available when you cannot decorate, for example a method
