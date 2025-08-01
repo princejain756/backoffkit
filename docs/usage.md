@@ -130,3 +130,18 @@ specific to asyncio:
   `TypeError` when the decorator is applied, not when it is first called.
 
 `async_retry_call` is available when you cannot decorate, for example a method
+on a client object you do not own.
+
+## Observing retries
+
+`on_retry` is called after every failure that will be retried, with a frozen
+`RetryState(attempt, delay, error)`. Use it for logging or metrics:
+
+```python
+import logging
+from backoffkit import RetryState
+
+log = logging.getLogger(__name__)
+
+def note_retry(state: RetryState) -> None:
+    log.warning(
