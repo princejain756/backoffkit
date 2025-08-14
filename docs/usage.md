@@ -145,3 +145,16 @@ log = logging.getLogger(__name__)
 
 def note_retry(state: RetryState) -> None:
     log.warning(
+        "retry %s in %.2fs after %r",
+        state.attempt,
+        state.delay,
+        state.error,
+    )
+```
+
+The callback runs before the sleep, so timings in your logs line up with the
+delays the strategy chose.
+
+## Testing code that retries
+
+Inject a sleeper instead of patching `time.sleep`:
