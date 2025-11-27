@@ -158,3 +158,17 @@ delays the strategy chose.
 ## Testing code that retries
 
 Inject a sleeper instead of patching `time.sleep`:
+
+```python
+delays: list[float] = []
+
+@retry(max_attempts=3, strategy=ExponentialBackoff(base=0.5), sleep=delays.append)
+def flaky() -> str:
+    """Fails twice, then succeeds."""
+
+assert flaky() == "done"
+assert delays == [0.5, 1.0]
+```
+
+For async code the sleeper is awaited, so pass an `async def` that records the
+delay and returns `None`.
